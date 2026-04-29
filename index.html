@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .psy {
+            background-image: 
+            repeating-radial-gradient(circle at center, transparent 0, transparent 20px, rgba(255, 255, 255, 0.3) 25px, transparent 110px),
+            radial-gradient(circle at center, rebeccapurple, purple);
+        }
+    </style>
+
+    <title>Are you psychic?</title>
+</head>
+<body class="h-dvh w-full">
+
+
+    <div x-data="game" class="relative h-full w-full">
+
+    
+        <div class="absolute inset-0 mx-auto flex items-center justify-center psy">
+
+            <div class="max-w-[500px]">
+                <img x-ref="logo" src="/img/are_you_psychic8.png" alt="" usemap="#logomap">
+            </div>
+            <map name="logomap">
+
+                <area @click="open = true" class="" shape="circle" :coords="coords" href="#" alt="">
+
+            </map>
+
+            <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute inset-4 z-10 bg-[rebeccapurple]">
+
+                <button @click="open=false">close</button>
+
+            </div>
+
+        </div>
+    
+    </div>
+
+    </div>
+
+    
+
+
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+
+            Alpine.data('game', () => ({
+
+                label: 'Are you psychic?',
+                logoImage: null,
+                open: false,
+
+                init(){
+                    this.logoImage = this.$refs.logo
+                },
+
+                get coords(){
+                    let rect = this.logoImage.getBoundingClientRect()
+                    let x = 0 // rect.x
+                    let y = 0 // rect.y
+                    let width = rect.width
+                    let height = rect.height
+
+                    console.log(`${x + width / 2}, ${y + height /2}, 100, 100`)
+
+                    return `${x + width /2}, ${y + height / 2}, 125`
+                }
+
+
+
+            }))
+
+        })
+    </script>
+    
+</body>
+</html>
