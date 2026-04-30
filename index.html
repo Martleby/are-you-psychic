@@ -13,15 +13,48 @@
 
     <style>
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 45deg;
+            inherits: false;
         }
+
+        @keyframes rotate-bg {
+            to {
+                --angle: 360deg;
+            }
+        }
+
         .psy {
             background-image: 
             repeating-radial-gradient(circle at center, transparent 0, transparent 20px, rgba(255, 255, 255, 0.3) 25px, transparent 110px),
+            /* repeating-conic-gradient(from var(--angle), rgba(255,255,255,0.05) 0deg 60deg, rgba(0,0,0,0.05) 60deg 120deg), */
             radial-gradient(circle at center, rebeccapurple, purple);
+
+            /* animation: rotate-bg 60s linear infinite */
         }
+
+        .dots {
+            background-color: indigo;
+            background-image: radial-gradient(rebeccapurple 2px, transparent 1px);
+            background-size: 5px 5px; /* Controls the spacing of the dots */
+        }
+
+        .noise {
+
+            /* background-image: 
+                linear-gradient(to bottom right, rgba(0, 128, 0, 0.5), rgba(0, 128, 0, 0.5)),
+                url("/img/noise.svg"),
+                linear-gradient(to bottom right, green, rgb(0, 128, 0)); */
+            
+
+            background-image: 
+                linear-gradient(to bottom right, rgba(102, 51, 153, 0.5), rgba(102, 51, 153, 0.5)),
+                url("/img/noise.svg"),
+                linear-gradient(to bottom right, rebeccapurple, rebeccapurple);
+
+        }
+
     </style>
 
     <title>Are you psychic?</title>
@@ -35,7 +68,7 @@
         <div class="absolute inset-0 mx-auto flex items-center justify-center psy">
 
             <div class="max-w-[500px]">
-                <img x-ref="logo" src="/img/are_you_psychic8.png" alt="" usemap="#logomap">
+                <img x-ref="logo" src="/img/are_you_psychic.png" alt="" usemap="#logomap">
             </div>
             <map name="logomap">
 
@@ -43,15 +76,63 @@
 
             </map>
 
-            <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute inset-4 z-10 bg-[rebeccapurple]">
+            <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute rounded-lg flex flex-col inset-4 z-10 noise p-4 border-4 border-[gold]">
 
-                <button @click="open=false">close</button>
+                <button class="text-[gold]" @click="open=false">close</button>
+
+                <div class="flex justify-center gap-x-2 max-w-fit mx-auto  bg-[rebeccapurple]">
+
+                    <div class="text-[gold] p-4 max-w-64 border border-2 border-[gold] text-xl">
+
+                        <div class="text-xl">
+                            Correct
+                        </div>
+
+                        <div class="text-4xl" x-text="correctGuesses">
+                            
+                        </div>
+                    </div>
+
+                    <div class="text-[gold] p-4 max-w-64 border border-2 border-[gold] text-xl">
+
+                        <div class="text-xl">
+                            Incorrect
+                        </div>
+
+                        <div class="text-4xl" x-text="incorrectGuesses">
+                            
+                        </div>
+                    </div>
+
+                
+                </div>
+
+
+                <div class="flex justify-center gap-x-2 mt-6">
+
+                    <div class="w-64">
+                        <img src="/img/card-back.png" alt="">
+                    </div>
+
+                    <div class="w-64">
+                        <img src="/img/card-back.png" alt="">
+                    </div>
+
+                </div>
+
+                <div class="w-full mt-auto">
+                    <div class="flex justify-center gap-x-2 max-w-fit p-6 mx-auto bg-[rebeccapurple] border border-2 border-[gold]">
+                        <template x-for="card in cards">
+                            <button @click="makeGuess(card)" class="w-48 rounded-lg shadow-[rebeccapurple] hover:shadow-xl transition hover:-translate-y-8">
+                                <img :src="card.url" alt="">    
+                            </button>
+                        </template>
+                    </div>
+                </div>
 
             </div>
 
         </div>
-    
-    </div>
 
     </div>
 
@@ -66,25 +147,53 @@
 
                 label: 'Are you psychic?',
                 logoImage: null,
-                open: false,
+                open: true,
+                cards: [
+                    {value: 1, name: 'circle', url: '/img/card-circle.png'},
+                    {value: 2, name: 'cross', url: '/img/card-cross.png'},
+                    {value: 3, name: 'square', url: '/img/card-square.png'},
+                    {value: 4, name: 'star', url: '/img/card-star.png'},
+                    {value: 5, name: 'waves', url: '/img/card-waves.png'},
+                ],
+                deck: [],
+                correctGuesses: 0,
+                incorrectGuesses: 0,
 
                 init(){
                     this.logoImage = this.$refs.logo
+
+                    while(this.deck.length < 25){
+                        this.deck.push(this.cards[this.randomNumber(0, 4)])
+                    }
                 },
 
                 get coords(){
                     let rect = this.logoImage.getBoundingClientRect()
-                    let x = 0 // rect.x
-                    let y = 0 // rect.y
+                    let x = 0
+                    let y = 0
                     let width = rect.width
                     let height = rect.height
 
-                    console.log(`${x + width / 2}, ${y + height /2}, 100, 100`)
+                    return `${x + width/2}, ${y + height/2}, 125`
+                },
 
-                    return `${x + width /2}, ${y + height / 2}, 125`
+                randomNumber(min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                },
+
+                makeGuess(guessedCard){
+
+                    if(!this.deck.length){
+                        return
+                    }
+
+                    let actualCard = this.deck.pop()
+
+                    actualCard.value === guessedCard.value ? this.correctGuesses++ : this.incorrectGuesses++
+
+
+
                 }
-
-
 
             }))
 
