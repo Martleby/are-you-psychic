@@ -45,7 +45,7 @@
             </div>
             <map name="logomap">
 
-                <area @click="open = true" class="" shape="circle" :coords="coords" href="#" alt="">
+                <area @click="resetGame(); open=true" class="" shape="circle" :coords="coords" href="#" alt="">
 
             </map>
 
@@ -83,21 +83,23 @@
 
                 <div x-show="!gameOver" class="flex justify-center gap-x-4 mt-6">
 
-                    <div class="w-64">
-
-                       
-                    </div>
-
                     <div class="w-64 relative">
                         
-                        <div :key="currentCard.url" :class="currentCard ? 'transition transition-transform -translate-x-64 absolute' : ''">
-                            <img :src="currentCard.url" alt="">
+                        <div 
+                            x-show="showCard"
+                            :key="currentCard?.id"
+                            x-transition:enter="transition ease-out duration-500"
+                            x-transition:enter-start="translate-x-56 scale-95 opacity-0"
+                            x-transition:enter-end="translate-x-0 rotate-[-12deg] opacity-100">
+                            <template x-if="currentCard">
+                                <img :src="currentCard.url" alt="">
+                            </template>
                         </div>
-                        
-                        <template x-for="(card, index) in deck.reverse()">
-                            <img :class="card.spent ? '-translate-x-64' : ''" class="absolute" :style="`z-index: ${index};`" src="/img/card-back.png" alt="">
-                        </template>
 
+                    </div>
+
+                    <div class="w-64" x-show="deck.length > 0">
+                        <img src="/img/card-back.png" alt="">
                     </div>
 
                 </div>
@@ -109,7 +111,7 @@
                     </h1>
 
                     <p class="mt-6 text-4xl">
-                        You scored <span x-text="correctGuesses"></span> out of <span>25!</span>
+                        You scored <span x-text="correctGuesses"></span> out of <span x-text="maxDeckSize"></span>!
                     </p>
 
                     <div class="mt-8">
@@ -119,9 +121,16 @@
                         </button>
                     </div>
 
+                    <div class="mt-8">
+                        <button class="border border-[gold] hover:text-[rebeccapurple] hover:bg-[gold] rounded focus:outline-0 focus:ring-2 text-lg px-3 py-2" 
+                            @click="open=false">
+                            Close
+                        </button>
+                    </div>
+
                 </div>
 
-                <div class="w-full mt-auto">
+                <div x-show="!gameOver" class="w-full mt-auto">
                     <div class="flex justify-center gap-x-2 max-w-fit p-6 mx-auto bg-[rebeccapurple] border border-2 border-[gold]">
                         <template x-for="card in cards">
                             <button @click="makeGuess(card)" class="w-48 rounded-lg shadow-[rebeccapurple] hover:shadow-xl transition hover:-translate-y-8">
@@ -157,6 +166,8 @@
                     {value: 5, name: 'waves', url: '/img/card-waves.png'},
                 ],
                 deck: [],
+                maxDeckSize: 25,
+                showCard: false,
                 spentDeck: [],
                 correctGuesses: 0,
                 incorrectGuesses: 0,
@@ -190,11 +201,18 @@
                         return
                     }
 
+                    this.showCard = false
+
                     let actualCard = this.deck.pop()
 
                     actualCard.value === guessedCard.value ? this.correctGuesses++ : this.incorrectGuesses++
 
                     this.currentCard = actualCard
+
+                    this.$nextTick(() => {
+                        this.currentCard = actualCard;
+                        this.showCard = true; // Slide the 'new' card in
+                    });
 
                     if(this.deck.length === 0){
                         this.gameOver = true
@@ -206,7 +224,7 @@
 
                     this.deck = []
 
-                    while(this.deck.length < 25){
+                    while(this.deck.length < this.maxDeckSize){
                         this.deck.push({...this.cards[this.randomNumber(0, 4)]})
                     }
 
