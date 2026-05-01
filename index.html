@@ -51,8 +51,6 @@
 
             <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute rounded-lg flex flex-col inset-4 z-10 noise p-4 border-4 border-[gold]">
 
-                <!-- <button class="text-[gold]" @click="open=false">close</button> -->
-
                 <div x-show="!gameOver" class="flex justify-center gap-x-2 max-w-fit mx-auto  bg-[rebeccapurple]">
 
                     <div class="text-[gold] p-4 max-w-64 border border-2 border-[gold] text-xl">
@@ -146,10 +144,6 @@
 
     </div>
 
-    
-
-
-
     <script>
         document.addEventListener('alpine:init', () => {
 
@@ -168,12 +162,10 @@
                 deck: [],
                 maxDeckSize: 25,
                 showCard: false,
-                spentDeck: [],
                 correctGuesses: 0,
                 incorrectGuesses: 0,
                 gameOver: false,
                 currentCard: null,
-                reset: true,
 
                 init(){
                     this.logoImage = this.$refs.logo
