@@ -207,8 +207,6 @@
 
                     actualCard.value === guessedCard.value ? this.correctGuesses++ : this.incorrectGuesses++
 
-                    this.currentCard = actualCard
-
                     this.$nextTick(() => {
                         this.currentCard = actualCard;
                         this.showCard = true; // Slide the 'new' card in
