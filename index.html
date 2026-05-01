@@ -13,46 +13,19 @@
 
     <style>
 
-        @property --angle {
-            syntax: '<angle>';
-            initial-value: 45deg;
-            inherits: false;
-        }
-
-        @keyframes rotate-bg {
-            to {
-                --angle: 360deg;
-            }
-        }
 
         .psy {
             background-image: 
             repeating-radial-gradient(circle at center, transparent 0, transparent 20px, rgba(255, 255, 255, 0.3) 25px, transparent 110px),
-            /* repeating-conic-gradient(from var(--angle), rgba(255,255,255,0.05) 0deg 60deg, rgba(0,0,0,0.05) 60deg 120deg), */
             radial-gradient(circle at center, rebeccapurple, purple);
 
-            /* animation: rotate-bg 60s linear infinite */
-        }
-
-        .dots {
-            background-color: indigo;
-            background-image: radial-gradient(rebeccapurple 2px, transparent 1px);
-            background-size: 5px 5px; /* Controls the spacing of the dots */
         }
 
         .noise {
-
-            /* background-image: 
-                linear-gradient(to bottom right, rgba(0, 128, 0, 0.5), rgba(0, 128, 0, 0.5)),
-                url("/img/noise.svg"),
-                linear-gradient(to bottom right, green, rgb(0, 128, 0)); */
-            
-
             background-image: 
                 linear-gradient(to bottom right, rgba(102, 51, 153, 0.5), rgba(102, 51, 153, 0.5)),
                 url("/img/noise.svg"),
                 linear-gradient(to bottom right, rebeccapurple, rebeccapurple);
-
         }
 
     </style>
@@ -78,9 +51,9 @@
 
             <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute rounded-lg flex flex-col inset-4 z-10 noise p-4 border-4 border-[gold]">
 
-                <button class="text-[gold]" @click="open=false">close</button>
+                <!-- <button class="text-[gold]" @click="open=false">close</button> -->
 
-                <div class="flex justify-center gap-x-2 max-w-fit mx-auto  bg-[rebeccapurple]">
+                <div x-show="!gameOver" class="flex justify-center gap-x-2 max-w-fit mx-auto  bg-[rebeccapurple]">
 
                     <div class="text-[gold] p-4 max-w-64 border border-2 border-[gold] text-xl">
 
@@ -108,14 +81,42 @@
                 </div>
 
 
-                <div class="flex justify-center gap-x-2 mt-6">
+                <div x-show="!gameOver" class="flex justify-center gap-x-4 mt-6">
 
                     <div class="w-64">
-                        <img src="/img/card-back.png" alt="">
+
+                       
                     </div>
 
-                    <div class="w-64">
-                        <img src="/img/card-back.png" alt="">
+                    <div class="w-64 relative">
+                        
+                        <div :key="currentCard.url" :class="currentCard ? 'transition transition-transform -translate-x-64 absolute' : ''">
+                            <img :src="currentCard.url" alt="">
+                        </div>
+                        
+                        <template x-for="(card, index) in deck.reverse()">
+                            <img :class="card.spent ? '-translate-x-64' : ''" class="absolute" :style="`z-index: ${index};`" src="/img/card-back.png" alt="">
+                        </template>
+
+                    </div>
+
+                </div>
+
+                <div x-show="gameOver" x-transition class="bg-[rebeccapurple] text-[gold] border-4 border-[gold] my-auto mx-auto p-4 lg:p-8 text-center">
+
+                    <h1 class="text-5xl">
+                        Congratulations!
+                    </h1>
+
+                    <p class="mt-6 text-4xl">
+                        You scored <span x-text="correctGuesses"></span> out of <span>25!</span>
+                    </p>
+
+                    <div class="mt-8">
+                        <button class="border border-[gold] hover:text-[rebeccapurple] hover:bg-[gold] rounded focus:outline-0 focus:ring-2 text-lg px-3 py-2" 
+                            @click="resetGame">
+                            Play Again?
+                        </button>
                     </div>
 
                 </div>
@@ -124,7 +125,7 @@
                     <div class="flex justify-center gap-x-2 max-w-fit p-6 mx-auto bg-[rebeccapurple] border border-2 border-[gold]">
                         <template x-for="card in cards">
                             <button @click="makeGuess(card)" class="w-48 rounded-lg shadow-[rebeccapurple] hover:shadow-xl transition hover:-translate-y-8">
-                                <img :src="card.url" alt="">    
+                                <img class="pointer-events-none" :src="card.url" alt="">    
                             </button>
                         </template>
                     </div>
@@ -147,7 +148,7 @@
 
                 label: 'Are you psychic?',
                 logoImage: null,
-                open: true,
+                open: false,
                 cards: [
                     {value: 1, name: 'circle', url: '/img/card-circle.png'},
                     {value: 2, name: 'cross', url: '/img/card-cross.png'},
@@ -156,15 +157,17 @@
                     {value: 5, name: 'waves', url: '/img/card-waves.png'},
                 ],
                 deck: [],
+                spentDeck: [],
                 correctGuesses: 0,
                 incorrectGuesses: 0,
+                gameOver: false,
+                currentCard: null,
+                reset: true,
 
                 init(){
                     this.logoImage = this.$refs.logo
 
-                    while(this.deck.length < 25){
-                        this.deck.push(this.cards[this.randomNumber(0, 4)])
-                    }
+                    this.initDeck()
                 },
 
                 get coords(){
@@ -183,7 +186,7 @@
 
                 makeGuess(guessedCard){
 
-                    if(!this.deck.length){
+                    if(this.gameOver){
                         return
                     }
 
@@ -191,9 +194,32 @@
 
                     actualCard.value === guessedCard.value ? this.correctGuesses++ : this.incorrectGuesses++
 
+                    this.currentCard = actualCard
 
+                    if(this.deck.length === 0){
+                        this.gameOver = true
+                    }
 
+                },
+
+                initDeck(){
+
+                    this.deck = []
+
+                    while(this.deck.length < 25){
+                        this.deck.push({...this.cards[this.randomNumber(0, 4)]})
+                    }
+
+                },
+
+                resetGame(){
+                    this.gameOver = false
+                    this.correctGuesses = 0
+                    this.incorrectGuesses = 0
+                    this.currentCard = null
+                    this.initDeck()
                 }
+
 
             }))
 
