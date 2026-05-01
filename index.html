@@ -40,14 +40,14 @@
     
         <div class="absolute inset-0 mx-auto flex items-center justify-center psy">
 
-            <div class="max-w-[500px]">
-                <img x-ref="logo" src="/img/are_you_psychic.png" alt="" usemap="#logomap">
+            <div class="max-w-[500px] group">
+                <img class="group-hover:hidden" x-ref="logo" src="/img/are_you_psychic.png" alt="" usemap="#logomap">
+                <img class="hidden group-hover:block" x-ref="" src="/img/are_you_psychic_highlight.png" alt="" usemap="#logomap">
+                <map name="logomap">
+                    <area @click="resetGame(); open=true" class="" shape="circle" :coords="coords" href="#" alt="">
+                </map>
             </div>
-            <map name="logomap">
-
-                <area @click="resetGame(); open=true" class="" shape="circle" :coords="coords" href="#" alt="">
-
-            </map>
+            
 
             <div x-show="open" x-transition.duration.500ms x-trap="open" class="absolute rounded-lg flex flex-col inset-4 z-10 noise p-4 border-4 border-[gold]">
 
@@ -90,7 +90,7 @@
                             :key="currentCard?.id"
                             x-transition:enter="transition ease-out duration-500"
                             x-transition:enter-start="translate-x-56 scale-95 opacity-0"
-                            x-transition:enter-end="translate-x-0 rotate-[-12deg] opacity-100">
+                            x-transition:enter-end="translate-x-0 rotate-[-6deg] opacity-100">
                             <template x-if="currentCard">
                                 <img :src="currentCard.url" alt="">
                             </template>
@@ -188,7 +188,7 @@
                     let width = rect.width
                     let height = rect.height
 
-                    return `${x + width/2}, ${y + height/2}, 125`
+                    return `${x + width/2}, ${y + height/2}, 150`
                 },
 
                 randomNumber(min, max) {
